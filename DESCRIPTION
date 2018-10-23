@@ -1,6 +1,6 @@
 Package: dwDBI
 Type: Package
-Title: A DBI backend for data.world datasets.
+Title: A DBI backend for data.world datasets
 Version: 0.1.0
 Author: Carl Vogel
 Maintainer: Carl Vogel <carl.vogel@warbyparker>
@@ -9,10 +9,23 @@ Description: More about what it does (maybe more than one line)
 License: MIT
 Encoding: UTF-8
 LazyData: true
+VignetteBuilder: knitr
 Imports:
+  DBI (> 0.3.0),
   data.world,
   dwapi,
-  DBI (> 0.3.0)
+  glue,
+  methods,
+  purrr, 
+  stringr,
+  tibble
 Suggests:
   DBItest,
   testthat
+Collate: 
+    'driver.R'
+    'connection.R'
+    'results.R'
+    'sql.R'
+    'viewer.R'
+RoxygenNote: 6.0.1

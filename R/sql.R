@@ -1,3 +1,6 @@
+#' @include connection.R
+NULL
+
 #' Read an entire data.world table into a data frame.
 #'
 #' @param conn A \code{Data.WorldConnection} object, as created
@@ -43,7 +46,7 @@ setMethod('dbListTables', c('Data.WorldConnection'),
 #' @seealso \code{\link[dwapi]{list_tables}}
 #'
 #' #' @export
-setMethod('dbTableExists', c('Data.WorldConnection', 'character'),
+setMethod('dbExistsTable', c('Data.WorldConnection', 'character'),
           function(conn, name, ...) {
             tables <- dwapi::list_tables(conn@dataset)
             tolower(name) %in% tolower(tables)
@@ -66,7 +69,7 @@ setMethod('dbListFields', c('Data.WorldConnection', 'character'),
           function(conn, name, ...) {
             schema <- dwapi::get_table_schema(dataset=conn@dataset,
                                               table_name=name)
-            map_chr(schema, 'name')
+            map_chr(schema$fields, 'name')
           })
 
 #' Upload a data frame as a CSV file a data.world dataset.
@@ -77,7 +80,7 @@ setMethod('dbListFields', c('Data.WorldConnection', 'character'),
 #' name does not end in '.csv', it will be added.
 #' @param value A data frame to upload to the dataset.
 #'
-#' @returns TRUE if the file was written successfully.
+#' @return TRUE if the file was written successfully.
 #'
 #' @importFrom stringr str_detect str_trim
 #' @importFrom glue glue
@@ -104,7 +107,7 @@ setMethod('dbWriteTable',
 #' name does not end in '.csv', it will be added.
 #' @param value A path to local file.
 #'
-#' @returns TRUE if the file was written successfully.
+#' @return TRUE if the file was written successfully.
 #'
 #' @seealso \code{\link[dwapi]{upload_file}}
 #'
@@ -122,8 +125,13 @@ setMethod('dbWriteTable',
                                file_name=name)
           })
 
-
-
-
+#' @importFrom stringr str_replace_all
+#' @export
+setMethod('dbQuoteIdentifier',
+          c('Data.WorldConnection', 'character'),
+          function(conn, x, ...) {
+            x <- str_replace_all(enc2utf8(x), '`', '``')
+            SQL(glue('`{x}`'))
+            })
 
 

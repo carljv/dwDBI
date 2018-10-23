@@ -1,6 +1,17 @@
+#' @include connection.R
+NULL
+
 setClass('Data.WorldResult',
          contains='DBIResult',
-         slots=c(.Data='data.frame'))
+         slots=c(query='character',
+                 data='data.frame'))
+
+setMethod('show', 'Data.WorldResult',
+          function(object) {
+            cat('<Data.WorldResult>\n')
+            cat(object@query, '\n')
+            show(object@data)
+          })
 
 #' Send a query to a data.world dataset.
 #'
@@ -18,14 +29,15 @@ setClass('Data.WorldResult',
 #' @seealso \code{\link[dwapi]{sql}}.
 #' @export
 setMethod('dbSendQuery', c('Data.WorldConnection'),
-          function(conn, statement, params, ...) {
-            res <- dwapi::sql(conn@dataset, query, params)
-            new('Data.WorldResult', .Data=res)
+          function(conn, statement, ...) {
+            res <- dwapi::sql(conn@dataset, statement)
+            new('Data.WorldResult', data=res, query=statement)
           })
 
 #' @export
 setMethod('dbClearResult', 'Data.WorldResult',
           function(res) { TRUE })
+
 
 #' Get a data frame with results of a sent query.
 #'
@@ -45,10 +57,9 @@ setMethod('dbClearResult', 'Data.WorldResult',
 #' old_cats <- dbFetch(old_cats_res)
 #' }
 #'
-#' }
 #' @export
 setMethod('dbFetch', 'Data.WorldResult',
-          function(res, n=NULL, ...) { res@.Data })
+          function(res, n=NULL, ...) { res@data })
 
 
 #' @export
@@ -57,7 +68,7 @@ setMethod('dbHasCompleted', 'Data.WorldResult',
 
 #' Get the column types of a query result.
 #'
-#' @param A \code{Data.WorldResult} object. A data
+#' @param res A \code{Data.WorldResult} object. A data
 #' frame with the query results can be obtained by
 #' calling \code{\link{dbFetch}} on the result.
 #'
@@ -66,8 +77,9 @@ setMethod('dbHasCompleted', 'Data.WorldResult',
 #' types.
 #'
 #' @importFrom purrr map_chr
+#' @importFrom tibble data_frame
 #' @export
 setMethod('dbColumnInfo', 'Data.WorldResult',
           function(res, ...) {
-            data_frame(name=names(res@.Data),
-                       type=map_chr(res@.Data, typeof))})
+            data_frame(name=names(res@data),
+                       type=map_chr(res@data, typeof))})

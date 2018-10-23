@@ -1,15 +1,20 @@
+#' @include driver.R
+NULL
+
 #' data.world connection class
 #'
 #' @keywords internal
 #' @export
 setClass('Data.WorldConnection',
          contains='DBIConnection',
-         slots=c(
-           dataset='character'))
+         slots=c(dataset='character'))
 
 #' Connect to a dataset like it's a database.
 #'
-#' @param dataset The name of a data.world dataset.
+#' @param drv A \code{Data.Worldriver} object, created
+#' by \code{\link{Data.World}()}.
+#' @param dataset The name of a data.world dataset. E.g.,
+#' "johndoe/pet_store".
 #'
 #' @note Even though it doesn't make an API call, this function
 #' will throw an error if your data.world API token has not been
@@ -38,18 +43,44 @@ setMethod('dbConnect', 'Data.WorldDriver',
             new('Data.WorldConnection', dataset=dataset, ...)
             })
 
+#' Connect to a dataset like it's a database.
+#'
+#' @param dataset The name of a data.world dataset.
+#'
+#' @note Even though it doesn't make an API call, this function
+#' will throw an error if your data.world API token has not been
+#' configured. See \code{\link[dwapi]{configure}}.
+#' This ensures that any subsequent queries sent over
+#' this connection will work.
+#'
+#' @return A "handle" in the form of Data.WorldConnection object.
+#'
+#' @examples
+#' \dontrun{
+#' conn <- dw_connect('johndoe/petstore')
+#' dbGetQuery(conn, "SELECT * FROM pets WHERE species = 'dog'")
+#' }
+#'
+#' @export
+dw_connect <- function(dataset) {
+  dbConnect(Data.World(), dataset)
+}
+
 #' A disconnect method for Data.World connections.
 #'
 #' This is a placeholder that doesn't do anything.
 #'
+#' @param conn A \code{Data.WorldConnection} object, as created
+#' by \code{\link[dwDBI]{dbConnect}}.
+#'
 #' @export
 setMethod('dbDisconnect', 'Data.WorldConnection',
-          function(drv, ...) { TRUE })
+          function(conn, ...) { TRUE })
 
-
+#' @importFrom glue glue
 setMethod('show', 'Data.WorldConnection',
           function(object) {
-            cat(sprintf('<Data.WorldConnection(dataset=%s)>\n', dataset))
+            cat(glue('<Data.WorldConnection(dataset={object@dataset})>\n'))
           })
 
 
@@ -73,3 +104,7 @@ setMethod('show', 'Data.WorldConnection',
 #'   \item license
 #'   \item files
 #'   }
+setMethod('dbGetInfo', 'Data.WorldConnection',
+          function(dbObj, ...) {
+            dwapi::get_dataset(dbObj@dataset)
+          })
