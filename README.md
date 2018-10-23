@@ -1,33 +1,63 @@
-Untitled
+dwDBI: A DBI interface for data.world datasets
 ================
 
-GitHub Documents
-----------------
+Intro
+-----
 
-This is an R Markdown format used for publishing markdown documents to GitHub. When you click the **Knit** button all R code chunks are run and a markdown file (.md) suitable for publishing to GitHub is generated.
+The `dwDBI` package provides:
 
-Including Code
---------------
+1.  A light [DBI](http://db.rstudio.com/dbi/) wrapper around the [data.world API package](https://cran.r-project.org/web/packages/data.world/index.html). The benefit of this is that you can write SQL queries in RMarkdown chunks and evaluate them.
+2.  Contracts that let you browse data.world datasets with the RStudio Connections panel.
 
-You can include R code in the document as follows:
+Querying data.world dataset in RMarkdown Notebooks
+==================================================
+
+First import the package.
 
 ``` r
-summary(cars)
+library('dwDBI')
 ```
 
-    ##      speed           dist       
-    ##  Min.   : 4.0   Min.   :  2.00  
-    ##  1st Qu.:12.0   1st Qu.: 26.00  
-    ##  Median :15.0   Median : 36.00  
-    ##  Mean   :15.4   Mean   : 42.98  
-    ##  3rd Qu.:19.0   3rd Qu.: 56.00  
-    ##  Max.   :25.0   Max.   :120.00
+Make sure that you've configured your data.world API key.
 
-Including Plots
----------------
+``` r
+dwapi::configure('YOUR API KEY HERE')
+```
 
-You can also embed plots, for example:
+To run a SQL query, connect to a data.world dataset with the `dw_connect()` function.
 
-![](README_files/figure-markdown_github/pressure-1.png)
+``` r
+sql101_conn <- dw_connect('ryantuck/sql-101-training')
+```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+In RStudio, you can write and run SQL code chunks by specifying a connection option.
+
+    # ```{sql, connection=sql101_conn}
+    #     ... your query here ...
+    #```
+
+Running the SQL code chunk returns a data frame.
+
+``` sql
+select *
+from customers
+order by `last`
+```
+
+|   id| first     | last      |
+|----:|:----------|:----------|
+|   14| Margaret  | Atwood    |
+|    2| Jane      | Austen    |
+|   12| Charlotte | Brontë    |
+|   20| Emily     | Brontë    |
+|    0| Ernest    | Hemingway |
+|   17| Victor    | Hugo      |
+|   10| Franz     | Kafka     |
+|    8| Jack      | Kerouac   |
+|   16| Harper    | Lee       |
+|    6| Vladimir  | Nabokov   |
+
+RStudio Connections
+-------------------
+
+You can also explore the tables in data.world datasets in the [RStudio Connections pane](https://support.rstudio.com/hc/en-us/articles/115010915687-Using-RStudio-Connections). Just use the "New Connection" button in the pane, select the "Data.World" connection type, and enter the name of the dataset you want to view.
